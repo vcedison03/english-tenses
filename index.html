@@ -5,23 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Práctica de Inglés Dinámica (100% Gratis)</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 680px; }
-        h1, h2, h3 { color: #2c3e50; text-align: center; }
+        body { font-family: Arial, sans-serif; background: #fdf2f8; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(216, 27, 96, 0.15); width: 100%; max-width: 680px; border-top: 6px solid #d81b60; }
+        h1, h2, h3 { color: #880e4f; text-align: center; }
         .hidden { display: none !important; }
-        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; }
-        button:hover { background: #2980b9; }
-        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        
+        /* Botones principales en tono Fucsia/Magenta */
+        button { background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #ad1457; }
+        
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #f48fb1; border-radius: 5px; box-sizing: border-box; }
+        input:focus, select:focus { outline: none; border-color: #d81b60; box-shadow: 0 0 5px rgba(216, 27, 96, 0.3); }
+        
         .metric { display: flex; justify-content: space-around; margin: 20px 0; text-align: center; }
-        .metric div { background: #ecf0f1; padding: 10px; border-radius: 5px; flex: 1; margin: 0 5px; }
-        .card-revision { background: #fafafa; border: 1px solid #ddd; padding: 15px; margin-bottom: 12px; border-radius: 6px; }
+        .metric div { background: #fce4ec; padding: 10px; border-radius: 5px; flex: 1; margin: 0 5px; color: #880e4f; }
+        
+        .card-revision { background: #fff5f8; border: 1px solid #f8bbd0; padding: 15px; margin-bottom: 12px; border-radius: 6px; }
         .aprobado { border-left: 5px solid #2ecc71; }
         .reprobado { border-left: 5px solid #e74c3c; }
         .badge { font-weight: bold; padding: 3px 6px; border-radius: 4px; color: white; font-size: 12px; }
         .bg-green { background: #2ecc71; }
         .bg-red { background: #e74c3c; }
-        .btn-audio { background: #27ae60; margin-top: 5px; width: auto; padding: 5px 12px; font-size: 14px; }
-        .banner-flexibilidad { background: #eef6fb; border: 1px solid #bce8f1; color: #31708f; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+        
+        /* Botón de audio secundario en rosa/fucsia suave */
+        .btn-audio { background: #ec407a; margin-top: 5px; width: auto; padding: 5px 12px; font-size: 14px; }
+        .btn-audio:hover { background: #c2185b; }
+        
+        .banner-flexibilidad { background: #fce4ec; border: 1px solid #f8bbd0; color: #880e4f; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -45,13 +55,11 @@
 
         <!-- Pantalla de Pregunta -->
         <div id="quiz-screen" class="hidden">
-            <p id="info-progreso" style="font-weight: bold; text-align: right;"></p>
-            <p><strong>Tiempo/Estructura:</strong> <span id="lbl-tiempo"></span></p>
-            <p><strong>Traducción guía:</strong> <span id="lbl-traduccion"></span></p>
+            <p id="info-progreso" style="font-weight: bold; text-align: right; color: #880e4f;"></p>
             
             <button id="btn-reproducir" onclick="reproducirAudio(estado.fraseActual.en)">🔊 Escuchar Audio (Google USA)</button>
             
-            <label style="margin-top: 15px; display: block;">Escribe lo que escuchas en inglés:</label>
+            <label style="margin-top: 15px; display: block; color: #880e4f; font-weight: bold;">Escribe lo que escuchas en inglés:</label>
             <input type="text" id="respuesta-usuario" placeholder="Type sentence here..." autocomplete="off">
             
             <div id="feedback-oracion" style="margin-top: 10px; font-weight: bold;"></div>
@@ -67,9 +75,9 @@
             <div class="banner-flexibilidad" id="info-flexibilidad"></div>
 
             <div class="metric">
-                <div><p>Respondidas</p><b id="res-total">0</b></div>
-                <div><p>Aprobadas ✅</p><b id="res-aciertos">0</b></div>
-                <div><p>Precisión Promedio 📊</p><b id="res-promedio">0%</b></div>
+                <div><p style="margin:0; font-size:12px;">Respondidas</p><b id="res-total" style="font-size:18px;">0</b></div>
+                <div><p style="margin:0; font-size:12px;">Aprobadas ✅</p><b id="res-aciertos" style="font-size:18px;">0</b></div>
+                <div><p style="margin:0; font-size:12px;">Precisión Promedio 📊</p><b id="res-promedio" style="font-size:18px;">0%</b></div>
             </div>
 
             <h3>========== REVISIÓN Y HISTORIAL ==========</h3>
@@ -86,7 +94,6 @@
         const verbos_pasado = [["discovered", "descubrió"], ["tested", "probó"], ["improved", "mejoró"], ["explained", "explicó"], ["calculated", "calculó"]];
         const verbos_participio = [["designed", "diseñado"], ["written", "escrito"], ["completed", "completado"], ["analyzed", "analizado"], ["developed", "desarrollado"]];
         
-        // Nuevos arrays para Continuos y Base de Modales
         const verbos_ing = [["developing", "desarrollando"], ["analyzing", "analizando"], ["designing", "diseñando"], ["creating", "creando"], ["evaluating", "evaluando"], ["optimizing", "optimizando"]];
         const verbos_base = [["develop", "desarrollar"], ["analyze", "analizar"], ["design", "diseñar"], ["create", "crear"], ["evaluate", "evaluar"], ["solve", "resolver"]];
 
@@ -211,119 +218,9 @@
             }
             estado.fraseActual = generarFrase();
             document.getElementById("info-progreso").innerText = `Oración ${estado.idx + 1} de ${estado.total}`;
-            document.getElementById("lbl-tiempo").innerText = estado.fraseActual.tiempo;
-            document.getElementById("lbl-traduccion").innerText = estado.fraseActual.es;
             document.getElementById("respuesta-usuario").value = "";
             document.getElementById("respuesta-usuario").disabled = false;
             document.getElementById("feedback-oracion").innerText = "";
             
             document.getElementById("btn-enviar").classList.remove("hidden");
-            document.getElementById("btn-siguiente").classList.add("hidden");
-        }
-
-        function reproducirAudio(texto) {
-            let url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(texto)}&tl=en-US&client=tw-ob`;
-            let audio = new Audio(url);
-            audio.play().catch(() => {
-                window.speechSynthesis.cancel();
-                let utterance = new SpeechSynthesisUtterance(texto);
-                utterance.lang = 'en-US';
-                window.speechSynthesis.speak(utterance);
-            });
-        }
-
-        function calcularSimilitud(a, b) {
-            let longer = a.length > b.length ? a : b;
-            let shorter = a.length > b.length ? b : a;
-            if (longer.length === 0) return 1.0;
-            let editDistance = levenshtein(longer, shorter);
-            return (longer.length - editDistance) / parseFloat(longer.length);
-        }
-
-        function levenshtein(s1, s2) {
-            let costs = new Array(s2.length + 1);
-            for (let i = 0; i <= s2.length; i++) costs[i] = i;
-            for (let i = 1; i <= s1.length; i++) {
-                let lastValue = i;
-                for (let j = 1; j <= s2.length; j++) {
-                    let newValue = costs[j - 1];
-                    if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-                        newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                    }
-                    costs[j - 1] = lastValue;
-                    lastValue = newValue;
-                }
-                costs[s2.length] = lastValue;
-            }
-            return costs[s2.length];
-        }
-
-        function verificarRespuesta() {
-            let userAns = document.getElementById("respuesta-usuario").value.trim();
-            let origAns = estado.fraseActual.en.trim();
-            
-            let porcentaje = calcularSimilitud(userAns.toLowerCase(), origAns.toLowerCase()) * 100;
-            let aprobo = porcentaje >= estado.umbral;
-
-            if (aprobo) estado.aciertos++;
-            estado.sumaPorcentajes += porcentaje;
-
-            estado.historial.push({
-                num: estado.idx + 1,
-                tiempo: estado.fraseActual.tiempo,
-                original: origAns,
-                traduccion: estado.fraseActual.es,
-                respuestaUsuario: userAns || "(Sin respuesta)",
-                calificacion: porcentaje.toFixed(1),
-                aprobo: aprobo
-            });
-
-            let elemFb = document.getElementById("feedback-oracion");
-            elemFb.innerHTML = `Calificación: <span style="color: ${aprobo ? '#2ecc71' : '#e74c3c'}">${porcentaje.toFixed(1)}% (${aprobo ? 'Aprobada ✅' : 'Reprobada ❌'})</span> [Umbral: ${estado.umbral}%]`;
-            
-            document.getElementById("respuesta-usuario").disabled = true;
-            document.getElementById("btn-enviar").classList.add("hidden");
-            document.getElementById("btn-siguiente").classList.remove("hidden");
-        }
-
-        function siguientePregunta() {
-            estado.idx++;
-            prepararPregunta();
-        }
-
-        function mostrarResultados() {
-            document.getElementById("quiz-screen").classList.add("hidden");
-            document.getElementById("results-screen").classList.remove("hidden");
-            
-            document.getElementById("info-flexibilidad").innerHTML = `⚙️ Flexibilidad aplicada: <strong>${estado.nivelNombre}</strong> (Aprobación mínima con <strong>${estado.umbral}%</strong>)`;
-            document.getElementById("res-total").innerText = estado.total;
-            document.getElementById("res-aciertos").innerText = estado.aciertos;
-            document.getElementById("res-promedio").innerText = (estado.sumaPorcentajes / estado.total).toFixed(1) + "%";
-
-            let contHistorial = document.getElementById("lista-historial");
-            contHistorial.innerHTML = "";
-
-            estado.historial.forEach(item => {
-                let card = document.createElement("div");
-                card.className = `card-revision ${item.aprobo ? 'aprobado' : 'reprobado'}`;
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong>📌 Oración #${item.num} [${item.tiempo}]</strong>
-                        <span class="badge ${item.aprobo ? 'bg-green' : 'bg-red'}">${item.calificacion}% (Mínimo: ${estado.umbral}%) - ${item.aprobo ? 'PASÓ' : 'NO PASÓ'}</span>
-                    </div>
-                    <p style="margin: 5px 0;"><b>Original (EN):</b> <code>${item.original}</code></p>
-                    <p style="margin: 5px 0;"><b>Traducción:</b> ${item.traduccion}</p>
-                    <p style="margin: 5px 0;"><b>Tu respuesta:</b> ${item.respuestaUsuario}</p>
-                    <button class="btn-audio" onclick="reproducirAudio('${item.original.replace(/'/g, "\\'")}')">🔊 Escuchar original</button>
-                `;
-                contHistorial.appendChild(card);
-            });
-        }
-
-        function reiniciar() {
-            document.getElementById("results-screen").classList.add("hidden");
-            document.getElementById("config-screen").classList.remove("hidden");
-        }
-    </script>
-</body>
-</html>
+            document
