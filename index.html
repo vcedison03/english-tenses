@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Práctica de Inglés Dinámica (100% Gratis)</title>
+    <title>English Tenses</title>
     <style>
         body { font-family: Arial, sans-serif; background: #fdf2f8; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(216, 27, 96, 0.15); width: 100%; max-width: 680px; border-top: 6px solid #d81b60; }
         h1, h2, h3 { color: #880e4f; text-align: center; }
         .hidden { display: none !important; }
         
-        /* Botones principales en tono Fucsia/Magenta */
         button { background: #d81b60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; font-weight: bold; transition: background 0.3s; }
         button:hover { background: #ad1457; }
         
@@ -27,7 +26,6 @@
         .bg-green { background: #2ecc71; }
         .bg-red { background: #e74c3c; }
         
-        /* Botón de audio secundario en rosa/fucsia suave */
         .btn-audio { background: #ec407a; margin-top: 5px; width: auto; padding: 5px 12px; font-size: 14px; }
         .btn-audio:hover { background: #c2185b; }
         
@@ -36,7 +34,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎓 Práctica de Inglés Dinámica</h1>
+        <h1>🇺🇸 English Tenses</h1>
         
         <!-- Pantalla de Configuración -->
         <div id="config-screen">
@@ -223,4 +221,112 @@
             document.getElementById("feedback-oracion").innerText = "";
             
             document.getElementById("btn-enviar").classList.remove("hidden");
-            document
+            document.getElementById("btn-siguiente").classList.add("hidden");
+        }
+
+        function reproducirAudio(texto) {
+            let url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(texto)}&tl=en-US&client=tw-ob`;
+            let audio = new Audio(url);
+            audio.play().catch(() => {
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            });
+        }
+
+        function calcularSimilitud(a, b) {
+            let longer = a.length > b.length ? a : b;
+            let shorter = a.length > b.length ? b : a;
+            if (longer.length === 0) return 1.0;
+            let editDistance = levenshtein(longer, shorter);
+            return (longer.length - editDistance) / parseFloat(longer.length);
+        }
+
+        function levenshtein(s1, s2) {
+            let costs = new Array(s2.length + 1);
+            for (let i = 0; i <= s2.length; i++) costs[i] = i;
+            for (let i = 1; i <= s1.length; i++) {
+                let lastValue = i;
+                for (let j = 1; j <= s2.length; j++) {
+                    let newValue = costs[j - 1];
+                    if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+                        newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                    }
+                    costs[j - 1] = lastValue;
+                    lastValue = newValue;
+                }
+                costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
+        }
+
+        function verificarRespuesta() {
+            let userAns = document.getElementById("respuesta-usuario").value.trim();
+            let origAns = estado.fraseActual.en.trim();
+            
+            let porcentaje = calcularSimilitud(userAns.toLowerCase(), origAns.toLowerCase()) * 100;
+            let aprobo = porcentaje >= estado.umbral;
+
+            if (aprobo) estado.aciertos++;
+            estado.sumaPorcentajes += porcentaje;
+
+            estado.historial.push({
+                num: estado.idx + 1,
+                tiempo: estado.fraseActual.tiempo,
+                original: origAns,
+                traduccion: estado.fraseActual.es,
+                respuestaUsuario: userAns || "(Sin respuesta)",
+                calificacion: porcentaje.toFixed(1),
+                aprobo: aprobo
+            });
+
+            let elemFb = document.getElementById("feedback-oracion");
+            elemFb.innerHTML = `Calificación: <span style="color: ${aprobo ? '#2ecc71' : '#e74c3c'}">${porcentaje.toFixed(1)}% (${aprobo ? 'Aprobada ✅' : 'Reprobada ❌'})</span> [Umbral: ${estado.umbral}%]`;
+            
+            document.getElementById("respuesta-usuario").disabled = true;
+            document.getElementById("btn-enviar").classList.add("hidden");
+            document.getElementById("btn-siguiente").classList.remove("hidden");
+        }
+
+        function siguientePregunta() {
+            estado.idx++;
+            prepararPregunta();
+        }
+
+        function mostrarResultados() {
+            document.getElementById("quiz-screen").classList.add("hidden");
+            document.getElementById("results-screen").classList.remove("hidden");
+            
+            document.getElementById("info-flexibilidad").innerHTML = `⚙️ Flexibilidad aplicada: <strong>${estado.nivelNombre}</strong> (Aprobación mínima con <strong>${estado.umbral}%</strong>)`;
+            document.getElementById("res-total").innerText = estado.total;
+            document.getElementById("res-aciertos").innerText = estado.aciertos;
+            document.getElementById("res-promedio").innerText = (estado.sumaPorcentajes / estado.total).toFixed(1) + "%";
+
+            let contHistorial = document.getElementById("lista-historial");
+            contHistorial.innerHTML = "";
+
+            estado.historial.forEach(item => {
+                let card = document.createElement("div");
+                card.className = `card-revision ${item.aprobo ? 'aprobado' : 'reprobado'}`;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>📌 Oración #${item.num} [${item.tiempo}]</strong>
+                        <span class="badge ${item.aprobo ? 'bg-green' : 'bg-red'}">${item.calificacion}% (Mínimo: ${estado.umbral}%) - ${item.aprobo ? 'PASÓ' : 'NO PASÓ'}</span>
+                    </div>
+                    <p style="margin: 5px 0;"><b>Original (EN):</b> <code>${item.original}</code></p>
+                    <p style="margin: 5px 0;"><b>Traducción:</b> ${item.traduccion}</p>
+                    <p style="margin: 5px 0;"><b>Tu respuesta:</b> ${item.respuestaUsuario}</p>
+                    <button class="btn-audio" onclick="reproducirAudio('${item.original.replace(/'/g, "\\'")}')">🔊 Escuchar original</button>
+                `;
+                contHistorial.appendChild(card);
+            });
+        }
+
+        function reiniciar() {
+            document.getElementById("results-screen").classList.add("hidden");
+            document.getElementById("config-screen").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
