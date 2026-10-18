@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctica de Inglés Dinámica (100% Gratis)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 680px; }
+        h1, h2, h3 { color: #2c3e50; text-align: center; }
+        .hidden { display: none !important; }
+        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; }
+        button:hover { background: #2980b9; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .metric { display: flex; justify-content: space-around; margin: 20px 0; text-align: center; }
+        .metric div { background: #ecf0f1; padding: 10px; border-radius: 5px; flex: 1; margin: 0 5px; }
+        .card-revision { background: #fafafa; border: 1px solid #ddd; padding: 15px; margin-bottom: 12px; border-radius: 6px; }
+        .aprobado { border-left: 5px solid #2ecc71; }
+        .reprobado { border-left: 5px solid #e74c3c; }
+        .badge { font-weight: bold; padding: 3px 6px; border-radius: 4px; color: white; font-size: 12px; }
+        .bg-green { background: #2ecc71; }
+        .bg-red { background: #e74c3c; }
+        .btn-audio { background: #27ae60; margin-top: 5px; width: auto; padding: 5px 12px; font-size: 14px; }
+        .banner-flexibilidad { background: #eef6fb; border: 1px solid #bce8f1; color: #31708f; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Práctica de Inglés Dinámica</h1>
+        
+        <!-- Pantalla de Configuración -->
+        <div id="config-screen">
+            <label>Nivel de exigencia (Flexibilidad):</label>
+            <select id="nivel">
+                <option value="60">Flexible (60% requerido)</option>
+                <option value="75">Medio (75% requerido)</option>
+                <option value="90" selected>Estricto (90% requerido)</option>
+            </select>
+            
+            <label>Número de oraciones:</label>
+            <input type="number" id="total-p" value="5" min="1" max="50">
+            
+            <button onclick="comenzarTest()">Comenzar Test</button>
+        </div>
+
+        <!-- Pantalla de Pregunta -->
+        <div id="quiz-screen" class="hidden">
+            <p id="info-progreso" style="font-weight: bold; text-align: right;"></p>
+            <p><strong>Tiempo/Estructura:</strong> <span id="lbl-tiempo"></span></p>
+            <p><strong>Traducción guía:</strong> <span id="lbl-traduccion"></span></p>
+            
+            <button id="btn-reproducir" onclick="reproducirAudio(estado.fraseActual.en)">🔊 Escuchar Audio (Google USA)</button>
+            
+            <label style="margin-top: 15px; display: block;">Escribe lo que escuchas en inglés:</label>
+            <input type="text" id="respuesta-usuario" placeholder="Type sentence here..." autocomplete="off">
+            
+            <div id="feedback-oracion" style="margin-top: 10px; font-weight: bold;"></div>
+            
+            <button id="btn-enviar" onclick="verificarRespuesta()">Enviar Respuesta</button>
+            <button id="btn-siguiente" class="hidden" onclick="siguientePregunta()">Siguiente Oración ➔</button>
+        </div>
+
+        <!-- Pantalla de Resultados y Revisión -->
+        <div id="results-screen" class="hidden">
+            <h2>🎉 Resultados Finales</h2>
+            
+            <div class="banner-flexibilidad" id="info-flexibilidad"></div>
+
+            <div class="metric">
+                <div><p>Respondidas</p><b id="res-total">0</b></div>
+                <div><p>Aprobadas ✅</p><b id="res-aciertos">0</b></div>
+                <div><p>Precisión Promedio 📊</p><b id="res-promedio">0%</b></div>
+            </div>
+
+            <h3>========== REVISIÓN Y HISTORIAL ==========</h3>
+            <div id="lista-historial"></div>
+
+            <button onclick="reiniciar()">🔄 Nuevo Test</button>
+        </div>
+    </div>
+
+    <script>
+        const sujetos = ["The engineer", "A researcher", "The programmer", "An architect", "Our professor", "The designer", "A scientist", "The analyst"];
+        const verbos_presente = [["develops", "desarrolla"], ["analyzes", "analiza"], ["designs", "diseña"], ["creates", "crea"], ["evaluates", "evalúa"]];
+        const verbos_futuro = [["publish", "publicará"], ["build", "construirá"], ["present", "presentará"], ["optimize", "optimizará"], ["solve", "resolverá"]];
+        const verbos_pasado = [["discovered", "descubrió"], ["tested", "probó"], ["improved", "mejoró"], ["explained", "explicó"], ["calculated", "calculó"]];
+        const verbos_participio = [["designed", "diseñado"], ["written", "escrito"], ["completed", "completado"], ["analyzed", "analizado"], ["developed", "desarrollado"]];
+        
+        // Nuevos arrays para Continuos y Base de Modales
+        const verbos_ing = [["developing", "desarrollando"], ["analyzing", "analizando"], ["designing", "diseñando"], ["creating", "creando"], ["evaluating", "evaluando"], ["optimizing", "optimizando"]];
+        const verbos_base = [["develop", "desarrollar"], ["analyze", "analizar"], ["design", "diseñar"], ["create", "crear"], ["evaluate", "evaluar"], ["solve", "resolver"]];
+
+        const objetos = [["a new algorithm", "un nuevo algoritmo"], ["the database", "la base de datos"], ["a scientific paper", "un artículo científico"], ["the system architecture", "la arquitectura del sistema"], ["an interactive module", "un módulo interactivo"]];
+        const lugares = [["in the laboratory", "en el laboratorio"], ["during the class", "durante la clase"], ["at the university", "en la universidad"], ["in the digital platform", "en la plataforma digital"]];
+
+        let estado = { idx: 0, total: 5, aciertos: 0, sumaPorcentajes: 0, umbral: 90, nivelNombre: "Estricto", fraseActual: null, historial: [] };
+
+        function elegir(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function generarFrase() {
+            let s = elegir(sujetos);
+            let [oe, os] = elegir(objetos);
+            let [le, ls] = elegir(lugares);
+            
+            let tipos = [
+                "Presente Simple", 
+                "Futuro Simple", 
+                "Pasado Simple", 
+                "Presente Perfecto", 
+                "Voz Pasiva",
+                "Presente Continuo",
+                "Presente Perfecto Continuo",
+                "Futuro Continuo",
+                "Futuro Perfecto",
+                "Modal CAN",
+                "Modal COULD",
+                "Modal MAY",
+                "Modal MIGHT",
+                "Modal SHOULD",
+                "Modal WOULD",
+                "Modal OUGHT TO"
+            ];
+            
+            let tipo = elegir(tipos);
+            let en = "", es = "";
+
+            if (tipo === "Presente Simple") {
+                let [ve, vs] = elegir(verbos_presente);
+                en = `${s} ${ve} ${oe} ${le}.`;
+                es = `${s} ${vs} ${os} ${ls}.`;
+            } else if (tipo === "Futuro Simple") {
+                let [ve, vs] = elegir(verbos_futuro);
+                en = `${s} will ${ve} ${oe} tomorrow.`;
+                es = `${s} ${vs} ${os} mañana.`;
+            } else if (tipo === "Pasado Simple") {
+                let [ve, vs] = elegir(verbos_pasado);
+                en = `${s} ${ve} ${oe} yesterday.`;
+                es = `${s} ${vs} ${os} ayer.`;
+            } else if (tipo === "Presente Perfecto") {
+                let [ve, vs] = elegir(verbos_participio);
+                en = `${s} has ${ve} ${oe} recently.`;
+                es = `${s} ha ${vs} ${os} recientemente.`;
+            } else if (tipo === "Presente Continuo") {
+                let [ve, vs] = elegir(verbos_ing);
+                en = `${s} is ${ve} ${oe} ${le}.`;
+                es = `${s} está ${vs} ${os} ${ls}.`;
+            } else if (tipo === "Presente Perfecto Continuo") {
+                let [ve, vs] = elegir(verbos_ing);
+                en = `${s} has been ${ve} ${oe} recently.`;
+                es = `${s} ha estado ${vs} ${os} recientemente.`;
+            } else if (tipo === "Futuro Continuo") {
+                let [ve, vs] = elegir(verbos_ing);
+                en = `${s} will be ${ve} ${oe} tomorrow.`;
+                es = `${s} estará ${vs} ${os} mañana.`;
+            } else if (tipo === "Futuro Perfecto") {
+                let [ve, vs] = elegir(verbos_participio);
+                en = `${s} will have ${ve} ${oe} by next week.`;
+                es = `${s} habrá ${vs} ${os} para la próxima semana.`;
+            } else if (tipo === "Modal CAN") {
+                let [ve, vs] = elegir(verbos_base);
+                en = `${s} can ${ve} ${oe}.`;
+                es = `${s} puede ${vs} ${os}.`;
+            } else if (tipo === "Modal COULD") {
+                let [ve, vs] = elegir(verbos_base);
+                en = `${s} could ${ve} ${oe}.`;
+                es = `${s} podría ${vs} ${os}.`;
+            } else if (tipo === "Modal MAY") {
+                let [ve, vs] = elegir(verbos_base);
+                en = `${s} may ${ve} ${oe}.`;
+                es = `${s} puede que ${vs} ${os}.`;
+            } else if (tipo === "Modal MIGHT") {
+                let [ve, vs] = elegir(verbos_base);
+                en = `${s} might ${ve} ${oe}.`;
+                es = `${s} tal vez ${vs} ${os}.`;
+            } else if (tipo === "Modal SHOULD") {
+                let [ve, vs] = elegir(verbos_base);
+                en = `${s} should ${ve} ${oe}.`;
+                es = `${s} debería ${vs} ${os}.`;
+            } else if (tipo === "Modal WOULD") {
+                let [ve, vs] = elegir(verbos_base);
+                en = `${s} would ${ve} ${oe}.`;
+                es = `${s} haría ${vs} ${os}.`;
+            } else if (tipo === "Modal OUGHT TO") {
+                let [ve, vs] = elegir(verbos_base);
+                en = `${s} ought to ${ve} ${oe}.`;
+                es = `${s} debería ${vs} ${os}.`;
+            } else {
+                let [ve, vs] = elegir(verbos_participio);
+                en = `${oe.charAt(0).toUpperCase() + oe.slice(1)} was ${ve} by ${s.toLowerCase()}.`;
+                es = `${os.charAt(0).toUpperCase() + os.slice(1)} fue ${vs} por ${s.toLowerCase()}.`;
+            }
+            return { tiempo: tipo, en, es };
+        }
+
+        function comenzarTest() {
+            let selectNivel = document.getElementById("nivel");
+            estado.umbral = parseFloat(selectNivel.value);
+            estado.nivelNombre = selectNivel.options[selectNivel.selectedIndex].text;
+            estado.total = parseInt(document.getElementById("total-p").value);
+            estado.idx = 0; estado.aciertos = 0; estado.sumaPorcentajes = 0; estado.historial = [];
+            
+            document.getElementById("config-screen").classList.add("hidden");
+            document.getElementById("quiz-screen").classList.remove("hidden");
+            prepararPregunta();
+        }
+
+        function prepararPregunta() {
+            if (estado.idx >= estado.total) {
+                mostrarResultados();
+                return;
+            }
+            estado.fraseActual = generarFrase();
+            document.getElementById("info-progreso").innerText = `Oración ${estado.idx + 1} de ${estado.total}`;
+            document.getElementById("lbl-tiempo").innerText = estado.fraseActual.tiempo;
+            document.getElementById("lbl-traduccion").innerText = estado.fraseActual.es;
+            document.getElementById("respuesta-usuario").value = "";
+            document.getElementById("respuesta-usuario").disabled = false;
+            document.getElementById("feedback-oracion").innerText = "";
+            
+            document.getElementById("btn-enviar").classList.remove("hidden");
+            document.getElementById("btn-siguiente").classList.add("hidden");
+        }
+
+        function reproducirAudio(texto) {
+            let url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(texto)}&tl=en-US&client=tw-ob`;
+            let audio = new Audio(url);
+            audio.play().catch(() => {
+                window.speechSynthesis.cancel();
+                let utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            });
+        }
+
+        function calcularSimilitud(a, b) {
+            let longer = a.length > b.length ? a : b;
+            let shorter = a.length > b.length ? b : a;
+            if (longer.length === 0) return 1.0;
+            let editDistance = levenshtein(longer, shorter);
+            return (longer.length - editDistance) / parseFloat(longer.length);
+        }
+
+        function levenshtein(s1, s2) {
+            let costs = new Array(s2.length + 1);
+            for (let i = 0; i <= s2.length; i++) costs[i] = i;
+            for (let i = 1; i <= s1.length; i++) {
+                let lastValue = i;
+                for (let j = 1; j <= s2.length; j++) {
+                    let newValue = costs[j - 1];
+                    if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+                        newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                    }
+                    costs[j - 1] = lastValue;
+                    lastValue = newValue;
+                }
+                costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
+        }
+
+        function verificarRespuesta() {
+            let userAns = document.getElementById("respuesta-usuario").value.trim();
+            let origAns = estado.fraseActual.en.trim();
+            
+            let porcentaje = calcularSimilitud(userAns.toLowerCase(), origAns.toLowerCase()) * 100;
+            let aprobo = porcentaje >= estado.umbral;
+
+            if (aprobo) estado.aciertos++;
+            estado.sumaPorcentajes += porcentaje;
+
+            estado.historial.push({
+                num: estado.idx + 1,
+                tiempo: estado.fraseActual.tiempo,
+                original: origAns,
+                traduccion: estado.fraseActual.es,
+                respuestaUsuario: userAns || "(Sin respuesta)",
+                calificacion: porcentaje.toFixed(1),
+                aprobo: aprobo
+            });
+
+            let elemFb = document.getElementById("feedback-oracion");
+            elemFb.innerHTML = `Calificación: <span style="color: ${aprobo ? '#2ecc71' : '#e74c3c'}">${porcentaje.toFixed(1)}% (${aprobo ? 'Aprobada ✅' : 'Reprobada ❌'})</span> [Umbral: ${estado.umbral}%]`;
+            
+            document.getElementById("respuesta-usuario").disabled = true;
+            document.getElementById("btn-enviar").classList.add("hidden");
+            document.getElementById("btn-siguiente").classList.remove("hidden");
+        }
+
+        function siguientePregunta() {
+            estado.idx++;
+            prepararPregunta();
+        }
+
+        function mostrarResultados() {
+            document.getElementById("quiz-screen").classList.add("hidden");
+            document.getElementById("results-screen").classList.remove("hidden");
+            
+            document.getElementById("info-flexibilidad").innerHTML = `⚙️ Flexibilidad aplicada: <strong>${estado.nivelNombre}</strong> (Aprobación mínima con <strong>${estado.umbral}%</strong>)`;
+            document.getElementById("res-total").innerText = estado.total;
+            document.getElementById("res-aciertos").innerText = estado.aciertos;
+            document.getElementById("res-promedio").innerText = (estado.sumaPorcentajes / estado.total).toFixed(1) + "%";
+
+            let contHistorial = document.getElementById("lista-historial");
+            contHistorial.innerHTML = "";
+
+            estado.historial.forEach(item => {
+                let card = document.createElement("div");
+                card.className = `card-revision ${item.aprobo ? 'aprobado' : 'reprobado'}`;
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>📌 Oración #${item.num} [${item.tiempo}]</strong>
+                        <span class="badge ${item.aprobo ? 'bg-green' : 'bg-red'}">${item.calificacion}% (Mínimo: ${estado.umbral}%) - ${item.aprobo ? 'PASÓ' : 'NO PASÓ'}</span>
+                    </div>
+                    <p style="margin: 5px 0;"><b>Original (EN):</b> <code>${item.original}</code></p>
+                    <p style="margin: 5px 0;"><b>Traducción:</b> ${item.traduccion}</p>
+                    <p style="margin: 5px 0;"><b>Tu respuesta:</b> ${item.respuestaUsuario}</p>
+                    <button class="btn-audio" onclick="reproducirAudio('${item.original.replace(/'/g, "\\'")}')">🔊 Escuchar original</button>
+                `;
+                contHistorial.appendChild(card);
+            });
+        }
+
+        function reiniciar() {
+            document.getElementById("results-screen").classList.add("hidden");
+            document.getElementById("config-screen").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
